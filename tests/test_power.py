@@ -1,72 +1,105 @@
-"""
-Tests for power analysis functions.
+"""Tests for core.power_analysis."""
 
-Run with: pytest tests/test_power.py -v
-"""
+import itertools
+import math
 
 import pytest
+from statsmodels.stats.power import zt_ind_solve_power
+from statsmodels.stats.proportion import proportion_effectsize
 
 from core.power_analysis import calculate_power, calculate_sample_size
 
 
 class TestCalculateSampleSize:
-    """Tests for calculate_sample_size function."""
+    def test_known_value(self):
+        """5% baseline, 10% lift (5.0% -> 5.5%), alpha 0.05, 80% power."""
+        assert calculate_sample_size(0.05, 0.10) == 31_218
 
-    def test_basic_calculation(self):
-        """Test sample size for 5% baseline, 10% MDE, 80% power."""
-        # Expected value verified against online calculator
-        # https://www.evanmiller.org/ab-testing/sample-size.html
-        n = calculate_sample_size(
-            baseline_rate=0.05,
-            minimum_detectable_effect=0.10,  # 10% relative lift
-            alpha=0.05,
-            power=0.80,
-        )
+    def test_close_to_evan_miller_calculator(self):
+        """https://www.evanmiller.org/ab-testing/sample-size.html gives 31,234.
 
-        # Should be approximately 31,000 per variant
-        # Allow some tolerance for different calculation methods
-        assert 28000 < n < 35000, f"Expected ~31000, got {n}"
+        That calculator uses a slightly different variance approximation, so
+        the answers agree to within 0.1% rather than exactly.
+        """
+        assert calculate_sample_size(0.05, 0.10) == pytest.approx(31_234, rel=0.001)
+
+    def test_matches_statsmodels_across_inputs(self):
+        """Matches statsmodels' numerical solver over 300 input combinations.
+
+        A two-sided test detects a real lift exactly when a one-sided test at
+        alpha / 2 does. statsmodels' two-sided power also counts significant
+        results in the wrong direction, so the reference is the one-sided solver.
+        """
+        for baseline, lift, alpha, power in itertools.product(
+            [0.01, 0.05, 0.10, 0.20, 0.40],
+            [0.02, 0.05, 0.10, 0.25, 0.50],
+            [0.01, 0.05, 0.10],
+            [0.70, 0.80, 0.90, 0.95],
+        ):
+            h = proportion_effectsize(baseline * (1 + lift), baseline)
+            expected = zt_ind_solve_power(
+                effect_size=h, alpha=alpha / 2, power=power, alternative="larger"
+            )
+            n = calculate_sample_size(baseline, lift, alpha, power)
+            assert n == math.ceil(expected), (baseline, lift, alpha, power)
 
     def test_higher_baseline_needs_smaller_sample(self):
-        """Higher baseline rates need smaller samples for same relative MDE."""
         n_low_baseline = calculate_sample_size(0.05, 0.10)
         n_high_baseline = calculate_sample_size(0.20, 0.10)
-
         assert n_high_baseline < n_low_baseline
 
     def test_larger_effect_needs_smaller_sample(self):
-        """Larger effects are easier to detect, need smaller samples."""
         n_small_effect = calculate_sample_size(0.05, 0.05)
         n_large_effect = calculate_sample_size(0.05, 0.20)
-
         assert n_large_effect < n_small_effect
 
     def test_higher_power_needs_larger_sample(self):
-        """Higher power requires larger sample size."""
         n_80_power = calculate_sample_size(0.05, 0.10, power=0.80)
         n_90_power = calculate_sample_size(0.05, 0.10, power=0.90)
-
         assert n_90_power > n_80_power
 
     def test_returns_integer(self):
-        """Sample size should be a whole number."""
-        n = calculate_sample_size(0.05, 0.10)
-        assert isinstance(n, int)
+        assert isinstance(calculate_sample_size(0.05, 0.10), int)
+
+    @pytest.mark.parametrize(
+        "baseline, lift, alpha, power",
+        [
+            (0.0, 0.10, 0.05, 0.80),  # baseline at 0%
+            (1.0, 0.10, 0.05, 0.80),  # baseline at 100%
+            (0.05, 0.0, 0.05, 0.80),  # no lift
+            (0.05, -0.10, 0.05, 0.80),  # negative lift
+            (0.50, 1.0, 0.05, 0.80),  # treatment rate reaches 100%
+            (0.05, 0.10, 0.0, 0.80),  # alpha at 0
+            (0.05, 0.10, 0.05, 1.0),  # power at 100%
+        ],
+    )
+    def test_rejects_impossible_inputs(self, baseline, lift, alpha, power):
+        with pytest.raises(ValueError):
+            calculate_sample_size(baseline, lift, alpha, power)
 
 
 class TestCalculatePower:
-    """Tests for calculate_power function."""
+    def test_sample_size_is_smallest_that_reaches_target(self):
+        """One user fewer than calculate_sample_size falls short of 80% power."""
+        n = calculate_sample_size(0.05, 0.10, power=0.80)
+        assert calculate_power(0.05, 0.10, n) >= 0.80
+        assert calculate_power(0.05, 0.10, n - 1) < 0.80
+
+    def test_matches_statsmodels(self):
+        """Compared one-sided at alpha / 2, as in the sample size test."""
+        h = proportion_effectsize(0.055, 0.05)
+        for n in [1_000, 10_000, 50_000]:
+            expected = zt_ind_solve_power(
+                effect_size=h, nobs1=n, alpha=0.025, alternative="larger"
+            )
+            assert calculate_power(0.05, 0.10, n) == pytest.approx(expected)
 
     def test_power_increases_with_sample_size(self):
-        """More samples = more power."""
-        power_small = calculate_power(0.05, 0.055, n_per_variant=1000)
-        power_large = calculate_power(0.05, 0.055, n_per_variant=10000)
-
-        assert power_large > power_small
+        assert calculate_power(0.05, 0.10, 10_000) > calculate_power(0.05, 0.10, 1_000)
 
     def test_power_increases_with_effect_size(self):
-        """Larger effects are easier to detect."""
-        power_small_effect = calculate_power(0.05, 0.055, n_per_variant=5000)
-        power_large_effect = calculate_power(0.05, 0.070, n_per_variant=5000)
+        assert calculate_power(0.05, 0.40, 5_000) > calculate_power(0.05, 0.10, 5_000)
 
-        assert power_large_effect > power_small_effect
+    def test_rejects_non_positive_sample_size(self):
+        with pytest.raises(ValueError):
+            calculate_power(0.05, 0.10, 0)
