@@ -144,7 +144,7 @@ statistical function against statsmodels or SciPy reference results.
 
 ## Roadmap
 
-- [ ] **Stage 1, statistics core:** sample size, power, two-proportion z-test,
+- [x] **Stage 1, statistics core:** sample size, power, two-proportion z-test,
       confidence interval
 - [ ] **Stage 2, simulator:** Monte Carlo experiments with a known true effect
 - [ ] **Stage 3, peeking demo:** repeated looks and a sequential correction
