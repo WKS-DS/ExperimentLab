@@ -106,7 +106,8 @@ streamlit run app.py
 Run the tests:
 
 ```bash
-pytest tests/ -v
+pip install -r requirements-dev.txt
+pytest
 ```
 
 ---
@@ -135,8 +136,9 @@ tested and reused on its own.
 
 ## Built with
 
-NumPy for simulation, SciPy and statsmodels for the statistics, pandas for
-results, Plotly for charts, Streamlit for the app, and pytest for tests.
+NumPy for simulation, SciPy for the statistics, pandas for results, Plotly
+for charts, and Streamlit for the app. The tests use pytest and check every
+statistical function against statsmodels or SciPy reference results.
 
 ---
 
