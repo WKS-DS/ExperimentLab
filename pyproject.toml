@@ -7,3 +7,7 @@ profile = "black"
 [tool.pytest.ini_options]
 testpaths = ["tests", "core"]
 addopts = "--doctest-modules"
+filterwarnings = [
+    # Raised by protobuf, a Streamlit dependency, on import under Python 3.12+
+    "ignore:Type google.protobuf:DeprecationWarning",
+]
