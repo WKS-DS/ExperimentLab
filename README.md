@@ -91,18 +91,28 @@ p < 0.05 gives chance many opportunities to cross the line.
 
 In an A/A test both groups are identical, so every significant result is a
 false positive. Checking one at equally spaced points and stopping at the
-first p < 0.05:
+first significant result:
 
-| Looks at the data | False positive rate |
-|------------------:|--------------------:|
-| 1                 | 5%                  |
-| 5                 | 14%                 |
-| 10                | 19%                 |
-| 20                | 25%                 |
+| Looks at the data | Stop at first p < 0.05 | O'Brien–Fleming boundaries |
+|------------------:|-----------------------:|---------------------------:|
+| 1                 | 5%                     | 5%                         |
+| 5                 | 14%                    | 5%                         |
+| 10                | 19%                    | 5%                         |
+| 20                | 25%                    | 5%                         |
 
-ExperimentLab simulates this, then applies a sequential testing correction
-that raises the bar for significance at each interim look, and shows the
-false positive rate returning to 5%.
+The middle column is computed exactly by numerical integration and matches
+the published values (Armitage, McPherson and Rowe, 1969). Simulating
+100,000 A/A tests with a 5% baseline and 31,218 users per variant gives the
+same rates to within Monte Carlo error: 14.3%, 19.4% and 24.7%.
+
+The correction is a set of O'Brien–Fleming boundaries. Look k of K counts as
+significant only if |z| > c·√(K/k), so the bar is very high at early looks,
+when little data has come in, and close to the usual 1.96 at the last one.
+With five looks the thresholds are 4.56, 3.23, 2.63, 2.28 and 2.04. The
+constant c is chosen so that the overall false positive rate is exactly α,
+and in simulation it stays at 5.0% for 5, 10 and 20 looks. An experiment can
+still stop early when the evidence is overwhelming, and one that runs to the
+end is analyzed almost as if there had been no interim looks.
 
 ---
 
@@ -163,7 +173,7 @@ statistical function against statsmodels or SciPy reference results.
 - [x] **Stage 1, statistics core:** sample size, power, two-proportion z-test,
       confidence interval
 - [x] **Stage 2, simulator:** Monte Carlo experiments with a known true effect
-- [ ] **Stage 3, peeking demo:** repeated looks and a sequential correction
+- [x] **Stage 3, peeking demo:** repeated looks and a sequential correction
 - [ ] **Stage 4, working app:** all three tools connected in Streamlit
 - [ ] **Stage 5, interface polish:** layout, charts and explanations
 - [ ] **Stage 6, ship:** deploy to Streamlit Community Cloud
