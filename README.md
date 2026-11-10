@@ -57,13 +57,29 @@ The simulator draws synthetic control and treatment data for a chosen true
 effect, runs a two-proportion test on each simulated experiment, and
 summarizes the results:
 
-- empirical power (the share of experiments that reach significance)
+- empirical power (the share of experiments that reach significance with
+  treatment ahead)
+- the false positive rate when there is no true effect
 - the distribution of observed lifts and p-values
-- confidence intervals for the difference in conversion rates
+- confidence intervals for the difference in conversion rates, and how often
+  they contain the true difference
 
 Running the simulation at the sample size from the calculator should
 reproduce the planned power, which makes the simulator a check on the
 calculator as well as a teaching tool.
+
+**Example.** Of 10,000 simulated experiments with a 5% baseline, a 10% true
+lift and 31,218 users per variant, 80.0% detect the lift, matching the
+planned 80% power. With no true effect, 5.1% reach significance, close to
+α = 0.05. In both cases about 95% of the confidence intervals contain the
+true difference. Simulating and analyzing all 10,000 experiments takes about
+a millisecond.
+
+A two-sided test can also reach significance in the wrong direction and call
+a better treatment worse. Those results are not counted as detecting the
+lift. At low power they are a noticeable share of significant results: with
+1,000 users per variant, 7.9% of experiments are significant but only 7.2%
+have treatment ahead, which is the power the calculator predicts.
 
 ---
 
@@ -146,7 +162,7 @@ statistical function against statsmodels or SciPy reference results.
 
 - [x] **Stage 1, statistics core:** sample size, power, two-proportion z-test,
       confidence interval
-- [ ] **Stage 2, simulator:** Monte Carlo experiments with a known true effect
+- [x] **Stage 2, simulator:** Monte Carlo experiments with a known true effect
 - [ ] **Stage 3, peeking demo:** repeated looks and a sequential correction
 - [ ] **Stage 4, working app:** all three tools connected in Streamlit
 - [ ] **Stage 5, interface polish:** layout, charts and explanations
