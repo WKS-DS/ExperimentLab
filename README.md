@@ -14,6 +14,9 @@ whether its result can be trusted:
    results inflates the false positive rate, and how sequential testing
    keeps it under control.
 
+It works with conversion-rate metrics (whether each user converted) and
+compares two variants.
+
 **Status:** In development. See the [roadmap](#roadmap).
 
 ---
@@ -103,7 +106,8 @@ streamlit run app.py
 Run the tests:
 
 ```bash
-pytest tests/ -v
+pip install -r requirements-dev.txt
+pytest
 ```
 
 ---
@@ -115,7 +119,7 @@ ExperimentLab/
 ├── app.py                  # Streamlit entry point
 ├── core/                   # Statistics only, no UI code
 │   ├── power_analysis.py   # Sample size and power
-│   ├── statistics.py       # Two-proportion tests and confidence intervals
+│   ├── statistics.py       # Two-proportion z-test and confidence interval
 │   ├── simulator.py        # Monte Carlo experiment simulation
 │   └── sequential.py       # Repeated looks and sequential boundaries
 ├── ui/                     # Streamlit components
@@ -132,16 +136,18 @@ tested and reused on its own.
 
 ## Built with
 
-NumPy for simulation, SciPy and statsmodels for the statistics, pandas for
-results, Plotly for charts, Streamlit for the app, and pytest for tests.
+NumPy for simulation, SciPy for the statistics, pandas for results, Plotly
+for charts, and Streamlit for the app. The tests use pytest and check every
+statistical function against statsmodels or SciPy reference results.
 
 ---
 
 ## Roadmap
 
-- [ ] Sample size and power calculator
-- [ ] Two-proportion tests and confidence intervals
-- [ ] Monte Carlo experiment simulator
-- [ ] Peeking problem demo with sequential testing
-- [ ] Polished interface and charts
-- [ ] Deploy to Streamlit Community Cloud
+- [x] **Stage 1, statistics core:** sample size, power, two-proportion z-test,
+      confidence interval
+- [ ] **Stage 2, simulator:** Monte Carlo experiments with a known true effect
+- [ ] **Stage 3, peeking demo:** repeated looks and a sequential correction
+- [ ] **Stage 4, working app:** all three tools connected in Streamlit
+- [ ] **Stage 5, interface polish:** layout, charts and explanations
+- [ ] **Stage 6, ship:** deploy to Streamlit Community Cloud
