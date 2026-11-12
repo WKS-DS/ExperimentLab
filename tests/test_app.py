@@ -37,7 +37,7 @@ def find_widget(app: AppTest, name: str):
 
 def table(app: AppTest, index: int) -> dict[str, tuple[str, str]]:
     """Read a comparison table as {row label: (simulated, expected)}."""
-    data = app.dataframe[index].value
+    data = app.table[index].value
     return {row[""]: (row["Simulated"], row["Expected"]) for _, row in data.iterrows()}
 
 
@@ -101,7 +101,7 @@ class TestDesignInputs:
 
 class TestSimulator:
     def test_aa_test_reports_false_positives(self):
-        app = run_app(**{"True lift (%)": 0})
+        app = run_app(**{"True lift": 0})
         assert_runs_cleanly(app)
         simulator = table(app, 0)
         assert "Detected the lift (power)" not in simulator
@@ -115,12 +115,25 @@ class TestSimulator:
     def test_impossible_true_lift_shows_message(self):
         """The design is valid, but a 100% true lift on 50% is not."""
         app = run_app(baseline=50.0, mde=50)
-        find_widget(app, "True lift (%)").set_value(100)
+        find_widget(app, "True lift").set_value(100)
         app.run()
         assert not app.exception
         assert len(app.error) == 1
         assert "treatment rate of 100%" in app.error[0].value
-        assert len(app.dataframe) == 2  # the peeking section still runs
+        assert len(app.table) == 2  # the peeking section still runs
+
+    def test_low_power_explains_the_charts(self):
+        """1,000 users per variant: 7% power and about 50 conversions."""
+        app = run_app(**{"Users per variant": 1_000})
+        assert_runs_cleanly(app)
+        captions = " ".join(caption.value for caption in app.caption)
+        assert "only lucky overestimates reach significance" in captions
+        assert "only certain p-values" in captions
+
+    def test_planned_sample_size_needs_no_warnings(self):
+        captions = " ".join(caption.value for caption in run_app().caption)
+        assert "lucky overestimates" not in captions
+        assert "only certain p-values" not in captions
 
     def test_redraw_button_uses_a_new_seed(self):
         app = run_app()
@@ -141,9 +154,9 @@ class TestPeeking:
         assert peeking["Check every look, stop at the first p < 0.05"][1] == (
             f"{expected:.1%}"
         )
-        thresholds = app.dataframe[2].value
+        thresholds = app.table[2].value
         assert len(thresholds) == n_looks
-        assert thresholds["Users per variant"].iloc[-1] == 31_218
+        assert thresholds["Users per variant"].iloc[-1] == "31,218"
 
     def test_few_conversions_per_look_shows_note(self):
         """With 20 users per look at a 5% baseline, each look expects 1."""
