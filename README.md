@@ -17,7 +17,11 @@ whether its result can be trusted:
 It works with conversion-rate metrics (whether each user converted) and
 compares two variants.
 
-**Status:** In development. See the [roadmap](#roadmap).
+**[Open the live app](https://experiment-lab.streamlit.app)**, hosted on
+Streamlit Community Cloud. If nobody has visited for a while, it opens on a
+sleep page; click the button there to wake it up.
+
+![The simulator tab: 8,056 of 10,000 simulated experiments detect a true 10% lift, matching the planned 80% power](docs/screenshot.png)
 
 ---
 
@@ -158,7 +162,8 @@ ExperimentLab/
 │   ├── sidebar.py          # Experiment inputs
 │   ├── results.py          # Result tables and summaries
 │   └── charts.py           # Plotly charts
-└── tests/                  # pytest suite for core/ and the app
+├── tests/                  # pytest suite for core/ and the app
+└── docs/screenshot.png     # README image
 ```
 
 `core/` has no Streamlit imports, so every statistical function can be
@@ -182,4 +187,5 @@ statistical function against statsmodels or SciPy reference results.
 - [x] **Stage 3, peeking demo:** repeated looks and a sequential correction
 - [x] **Stage 4, working app:** all three tools connected in Streamlit
 - [x] **Stage 5, interface polish:** layout, charts and explanations
-- [ ] **Stage 6, ship:** deploy to Streamlit Community Cloud
+- [x] **Stage 6, ship:** deployed to
+      [Streamlit Community Cloud](https://experiment-lab.streamlit.app)
