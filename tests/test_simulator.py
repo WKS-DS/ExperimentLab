@@ -147,8 +147,28 @@ class TestSummarizeSimulation:
         assert summary["significant_rate"] > 0.75
         assert summary["treatment_win_rate"] < 0.001
 
+    def test_detected_lift_is_close_to_truth_at_planned_power(self):
+        results = simulate_experiments(0.05, 0.10, 31_218, seed=0)
+        detected_lift = summarize_simulation(results)["mean_detected_lift"]
+        assert 0.10 < detected_lift < 0.12
+
+    def test_detected_lift_overstates_effect_at_low_power(self):
+        """At 7% power only lifts of about 40% or more reach significance."""
+        results = simulate_experiments(0.05, 0.10, 1_000, seed=0)
+        detected_lift = summarize_simulation(results)["mean_detected_lift"]
+        assert detected_lift > 0.40
+
+    def test_detected_lift_is_nan_without_detections(self):
+        results = simulate_experiments(0.05, -0.10, 31_218, n_experiments=100, seed=0)
+        assert math.isnan(summarize_simulation(results)["mean_detected_lift"])
+
     def test_rates_are_floats(self):
         results = simulate_experiments(0.05, 0.10, 1_000, n_experiments=100, seed=0)
         summary = summarize_simulation(results)
-        assert set(summary) == {"treatment_win_rate", "significant_rate", "ci_coverage"}
+        assert set(summary) == {
+            "treatment_win_rate",
+            "significant_rate",
+            "ci_coverage",
+            "mean_detected_lift",
+        }
         assert all(isinstance(rate, float) for rate in summary.values())

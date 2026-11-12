@@ -6,12 +6,18 @@ Run with: streamlit run app.py
 
 import streamlit as st
 
-from ui.results import show_peeking, show_sample_size, show_simulator
+from ui.results import TEXT_WIDTH, show_peeking, show_sample_size, show_simulator
 from ui.sidebar import experiment_inputs
 
-st.set_page_config(page_title="ExperimentLab", layout="wide")
-st.title("ExperimentLab")
-st.caption("Design, simulate, and analyze A/B tests before you run them.")
+st.set_page_config(
+    page_title="ExperimentLab", page_icon=":material/science:", layout="wide"
+)
+st.title("ExperimentLab", anchor=False)
+st.markdown(
+    ":gray[Plan an A/B test, simulate it before launch, and see why checking the "
+    "results early inflates false positives.]",
+    width=TEXT_WIDTH,
+)
 
 baseline_rate, minimum_detectable_effect, alpha, power = experiment_inputs()
 

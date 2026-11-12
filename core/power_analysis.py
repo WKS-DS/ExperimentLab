@@ -48,7 +48,7 @@ def calculate_sample_size(
     """
     _check_probability("alpha", alpha)
     _check_probability("power", power)
-    h = _cohens_h(baseline_rate, minimum_detectable_effect)
+    h = cohens_h(baseline_rate, minimum_detectable_effect)
 
     z_alpha = norm.ppf(1 - alpha / 2)
     z_power = norm.ppf(power)
@@ -89,14 +89,31 @@ def calculate_power(
     _check_probability("alpha", alpha)
     if n_per_variant <= 0:
         raise ValueError(f"n_per_variant must be positive, got {n_per_variant}")
-    h = _cohens_h(baseline_rate, minimum_detectable_effect)
+    h = cohens_h(baseline_rate, minimum_detectable_effect)
 
     z_alpha = norm.ppf(1 - alpha / 2)
     return float(norm.cdf(h * math.sqrt(n_per_variant / 2) - z_alpha))
 
 
-def _cohens_h(baseline_rate: float, minimum_detectable_effect: float) -> float:
-    """Return Cohen's h between the baseline rate and the lifted treatment rate."""
+def cohens_h(baseline_rate: float, minimum_detectable_effect: float) -> float:
+    """Effect size between the baseline rate and the lifted treatment rate.
+
+    Cohen's h is the difference between the two rates after the arcsine
+    square-root transform, which makes the variance of a proportion roughly
+    the same at every rate. A 0.5 point change therefore counts for more on a
+    1% baseline than on a 50% one.
+
+    Args:
+        baseline_rate: Control conversion rate, between 0 and 1.
+        minimum_detectable_effect: Relative lift, e.g. 0.10 for 10%.
+
+    Returns:
+        h = 2 * (arcsin(sqrt(treatment_rate)) - arcsin(sqrt(baseline_rate))).
+
+    Example:
+        >>> round(cohens_h(0.05, 0.10), 4)
+        0.0224
+    """
     _check_probability("baseline_rate", baseline_rate)
     if minimum_detectable_effect <= 0:
         raise ValueError(

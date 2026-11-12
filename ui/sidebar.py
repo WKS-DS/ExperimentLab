@@ -16,14 +16,18 @@ def experiment_inputs() -> tuple[float, float, float, float]:
         (baseline_rate, minimum_detectable_effect, alpha, power), all as
         fractions, e.g. 0.05 for a 5% baseline.
     """
-    st.sidebar.header("Experiment design")
+    st.sidebar.header("Experiment design", anchor=False)
+    st.sidebar.caption(
+        "These set the sample size. The simulator and peeking tabs start from it."
+    )
     baseline_rate = (
         st.sidebar.slider(
-            "Baseline conversion rate (%)",
+            "Baseline conversion rate",
             min_value=0.5,
             max_value=50.0,
             value=5.0,
             step=0.5,
+            format="%.1f%%",
             key="baseline",
             help="Share of control users who convert today.",
         )
@@ -31,10 +35,11 @@ def experiment_inputs() -> tuple[float, float, float, float]:
     )
     minimum_detectable_effect = (
         st.sidebar.slider(
-            "Minimum detectable effect (%)",
+            "Minimum detectable effect",
             min_value=1,
             max_value=100,
             value=10,
+            format="%d%%",
             key="mde",
             help="Smallest relative lift worth detecting. A 10% lift on a 5% "
             "baseline is 5.5%.",
@@ -45,6 +50,7 @@ def experiment_inputs() -> tuple[float, float, float, float]:
         "Significance level (α)",
         ALPHA_OPTIONS,
         index=1,
+        format_func="{:g}".format,
         key="alpha",
         help="False positive rate when there is no real difference.",
     )
