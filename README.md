@@ -152,7 +152,7 @@ ExperimentLab/
 │   ├── sidebar.py          # Experiment inputs
 │   ├── results.py          # Result tables and summaries
 │   └── charts.py           # Plotly charts
-└── tests/                  # pytest suite for core/
+└── tests/                  # pytest suite for core/ and the app
 ```
 
 `core/` has no Streamlit imports, so every statistical function can be
@@ -174,6 +174,6 @@ statistical function against statsmodels or SciPy reference results.
       confidence interval
 - [x] **Stage 2, simulator:** Monte Carlo experiments with a known true effect
 - [x] **Stage 3, peeking demo:** repeated looks and a sequential correction
-- [ ] **Stage 4, working app:** all three tools connected in Streamlit
+- [x] **Stage 4, working app:** all three tools connected in Streamlit
 - [ ] **Stage 5, interface polish:** layout, charts and explanations
 - [ ] **Stage 6, ship:** deploy to Streamlit Community Cloud
