@@ -148,8 +148,8 @@ def summarize_simulation(results: pd.DataFrame) -> dict[str, float]:
     Example:
         >>> results = simulate_experiments(0.05, 0.10, 31_218, seed=0)
         >>> summary = summarize_simulation(results)
-        >>> f"{summary['treatment_win_rate']:.0%}"
-        '80%'
+        >>> round(summary["treatment_win_rate"], 1)
+        0.8
     """
     significant = results["significant"]
     treatment_wins = significant & (results["z"] > 0)

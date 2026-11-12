@@ -123,7 +123,7 @@ end is analyzed almost as if there had been no interim looks.
 
 ## Getting started
 
-Requires Python 3.10 or later.
+Requires Python 3.12 or later.
 
 ```bash
 git clone https://github.com/WKS-DS/ExperimentLab.git

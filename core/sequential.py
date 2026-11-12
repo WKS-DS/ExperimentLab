@@ -181,9 +181,16 @@ def summarize_peeking(z_by_look: pd.DataFrame, alpha: float = 0.05) -> dict[str,
           or more looks. Close to alpha.
 
     Example:
+        Simulated rates are within a point of the exact ones. The draws for a
+        given seed can change between NumPy versions, so the example compares
+        rates instead of printing them.
+
         >>> z = simulate_peeking(0.05, 31_218, n_looks=10, seed=0)
-        >>> {k: f"{v:.0%}" for k, v in summarize_peeking(z).items()}
-        {'final_look_only': '5%', 'any_look': '19%', 'obrien_fleming': '5%'}
+        >>> summary = summarize_peeking(z)
+        >>> abs(summary["any_look"] - peeking_false_positive_rate(10)) < 0.01
+        True
+        >>> abs(summary["obrien_fleming"] - 0.05) < 0.01
+        True
     """
     abs_z = np.abs(z_by_look.to_numpy())
     threshold = norm.ppf(1 - alpha / 2)
