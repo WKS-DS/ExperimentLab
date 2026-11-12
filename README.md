@@ -81,6 +81,11 @@ lift. At low power they are a noticeable share of significant results: with
 1,000 users per variant, 7.9% of experiments are significant but only 7.2%
 have treatment ahead, which is the power the calculator predicts.
 
+Low power also inflates the effects that do reach significance. Only
+experiments that happen to overestimate the lift clear the bar, so with 1,000
+users per variant the ones that detect a 10% lift measure 60% on average. At
+the planned 31,218 users they measure 11.4%.
+
 ---
 
 ## The peeking problem
@@ -143,6 +148,7 @@ pytest
 ```
 ExperimentLab/
 ├── app.py                  # Streamlit entry point
+├── .streamlit/config.toml  # Theme: colors and fonts
 ├── core/                   # Statistics only, no UI code
 │   ├── power_analysis.py   # Sample size and power
 │   ├── statistics.py       # Two-proportion z-test and confidence interval
@@ -175,5 +181,5 @@ statistical function against statsmodels or SciPy reference results.
 - [x] **Stage 2, simulator:** Monte Carlo experiments with a known true effect
 - [x] **Stage 3, peeking demo:** repeated looks and a sequential correction
 - [x] **Stage 4, working app:** all three tools connected in Streamlit
-- [ ] **Stage 5, interface polish:** layout, charts and explanations
+- [x] **Stage 5, interface polish:** layout, charts and explanations
 - [ ] **Stage 6, ship:** deploy to Streamlit Community Cloud
