@@ -7,7 +7,7 @@ import pytest
 from statsmodels.stats.power import zt_ind_solve_power
 from statsmodels.stats.proportion import proportion_effectsize
 
-from core.power_analysis import calculate_power, calculate_sample_size
+from core.power_analysis import calculate_power, calculate_sample_size, cohens_h
 
 
 class TestCalculateSampleSize:
@@ -103,3 +103,16 @@ class TestCalculatePower:
     def test_rejects_non_positive_sample_size(self):
         with pytest.raises(ValueError):
             calculate_power(0.05, 0.10, 0)
+
+
+class TestCohensH:
+    @pytest.mark.parametrize(
+        "baseline, lift", [(0.05, 0.10), (0.01, 0.50), (0.30, 0.20), (0.49, 1.0)]
+    )
+    def test_matches_statsmodels(self, baseline, lift):
+        expected = proportion_effectsize(baseline * (1 + lift), baseline)
+        assert cohens_h(baseline, lift) == pytest.approx(expected, rel=1e-12)
+
+    def test_same_point_change_is_larger_on_a_low_baseline(self):
+        """Half a percentage point: 1% to 1.5%, and 50% to 50.5%."""
+        assert cohens_h(0.01, 0.50) > 4 * cohens_h(0.50, 0.01)

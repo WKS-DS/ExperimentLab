@@ -140,6 +140,10 @@ def summarize_simulation(results: pd.DataFrame) -> dict[str, float]:
           should be close to alpha.
         - ci_coverage: share of intervals that contain the true difference,
           which should be close to the confidence level, 1 - alpha.
+        - mean_detected_lift: average observed lift among the experiments
+          counted in treatment_win_rate, or NaN if there are none. Only
+          large observed lifts reach significance, so at low power this is
+          far above the true lift (the winner's curse).
 
     Example:
         >>> results = simulate_experiments(0.05, 0.10, 31_218, seed=0)
@@ -148,8 +152,12 @@ def summarize_simulation(results: pd.DataFrame) -> dict[str, float]:
         '80%'
     """
     significant = results["significant"]
+    treatment_wins = significant & (results["z"] > 0)
     return {
-        "treatment_win_rate": float((significant & (results["z"] > 0)).mean()),
+        "treatment_win_rate": float(treatment_wins.mean()),
         "significant_rate": float(significant.mean()),
         "ci_coverage": float(results["ci_covers_truth"].mean()),
+        "mean_detected_lift": float(
+            results.loc[treatment_wins, "observed_lift"].mean()
+        ),
     }
